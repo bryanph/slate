@@ -138,7 +138,7 @@ Remove the node at `path`.
   type: 'set_node',
   path: List,
   properties: Object,
-  node: Node,
+  newProperties: Object,
 }
 ```
 
@@ -166,7 +166,7 @@ Split the node at `path` at `position`. The `position` refers to either the inde
 {
   type: 'set_selection',
   properties: Object,
-  selection: Selection,
+  newProperties: Object,
 }
 ```
 
@@ -178,7 +178,7 @@ Set new `properties` on the selection.
 {
   type: 'set_value',
   properties: Object,
-  value: Value,
+  newProperties: Object,
 }
 ```
 

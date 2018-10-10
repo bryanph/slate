@@ -547,13 +547,16 @@ Commands.moveToStartOfText = change => {
 }
 
 Commands.select = (change, properties, options = {}) => {
+  // TODO: rewrite this, it is a bit obscure - 2018-10-10
   properties = Selection.createProperties(properties)
   const { snapshot = false } = options
   const { value } = change
   const { document, selection } = value
-  const props = {}
+  const newProperties = {}
   let next = selection.setProperties(properties)
   next = document.resolveSelection(next)
+
+  console.log(selection.toJSON())
 
   // Re-compute the properties, to ensure that we get their normalized values.
   properties = pick(next, Object.keys(properties))
@@ -563,26 +566,40 @@ Commands.select = (change, properties, options = {}) => {
   // are being changed, for the inverse operation.
   for (const k in properties) {
     if (snapshot === true || !is(properties[k], selection[k])) {
-      props[k] = properties[k]
+      newProperties[k] = properties[k]
     }
   }
 
   // If the selection moves, clear any marks, unless the new selection
   // properties change the marks in some way.
-  if (selection.marks && !props.marks && (props.anchor || props.focus)) {
-    props.marks = null
+  if (selection.marks && !newProperties.marks && (newProperties.anchor || newProperties.focus)) {
+    newProperties.marks = null
   }
 
   // If there are no new properties to set, abort to avoid extra operations.
-  if (Object.keys(props).length === 0) {
+  if (Object.keys(newProperties).length === 0) {
     return
   }
+
+  const prevProperties = pick(selection, Object.keys(newProperties))
+
+  function mapObj(s) {
+    return {
+      ...s,
+      anchor: s.anchor && s.anchor.toJSON(),
+      focus: s.focus && s.focus.toJSON(),
+    }
+  }
+
+  console.log(selection.toJSON(), selection.anchor.toJSON(), selection.focus.toJSON(), Object.keys(newProperties))
+  console.log(mapObj(prevProperties), mapObj(newProperties))
 
   change.applyOperation(
     {
       type: 'set_selection',
       value,
-      properties: props,
+      properties: prevProperties,
+      newProperties,
       selection: selection.toJSON(),
     },
     snapshot ? { skip: false, merge: false } : {}

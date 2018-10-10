@@ -1,3 +1,4 @@
+import pick from 'lodash/pick'
 import Value from '../models/value'
 
 /**
@@ -15,14 +16,15 @@ const Commands = {}
  * @param {Object|Value} properties
  */
 
-Commands.setValue = (change, properties) => {
-  properties = Value.createProperties(properties)
+Commands.setValue = (change, newProperties) => {
   const { value } = change
+  newProperties = Value.createProperties(newProperties)
+  const prevProperties = pick(value, Object.keys(newProperties))
 
   change.applyOperation({
     type: 'set_value',
-    properties,
-    value,
+    properties: prevProperties,
+    newProperties,
   })
 }
 

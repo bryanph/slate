@@ -1,3 +1,4 @@
+import pick from 'lodash/pick'
 import Block from '../models/block'
 import Inline from '../models/inline'
 import Mark from '../models/mark'
@@ -52,7 +53,6 @@ Commands.addMarkByPath = (change, path, offset, length, mark) => {
 
     operations.push({
       type: 'add_mark',
-      value,
       path,
       offset: start,
       length: end - start,
@@ -92,7 +92,6 @@ Commands.insertNodeByPath = (change, path, index, node) => {
 
   change.applyOperation({
     type: 'insert_node',
-    value,
     path: path.concat(index),
     node,
   })
@@ -137,7 +136,6 @@ Commands.insertTextByPath = (change, path, offset, text, marks) => {
 
   change.applyOperation({
     type: 'insert_text',
-    value,
     path,
     offset,
     text,
@@ -169,7 +167,6 @@ Commands.mergeNodeByPath = (change, path) => {
 
   change.applyOperation({
     type: 'merge_node',
-    value,
     path,
     position,
     // for undos to succeed we only need the type and data because
@@ -196,7 +193,6 @@ Commands.moveNodeByPath = (change, path, newPath, newIndex) => {
 
   change.applyOperation({
     type: 'move_node',
-    value,
     path,
     newPath: newPath.concat(newIndex),
   })
@@ -242,7 +238,6 @@ Commands.removeMarkByPath = (change, path, offset, length, mark) => {
 
     operations.push({
       type: 'remove_mark',
-      value,
       path,
       offset: start,
       length: end - start,
@@ -287,7 +282,6 @@ Commands.removeNodeByPath = (change, path) => {
 
   change.applyOperation({
     type: 'remove_node',
-    value,
     path,
     node,
   })
@@ -358,7 +352,6 @@ Commands.removeTextByPath = (change, path, offset, length) => {
 
     removals.push({
       type: 'remove_text',
-      value,
       path,
       offset: start,
       text: string,
@@ -465,21 +458,21 @@ Commands.setMarkByPath = (change, path, offset, length, mark, properties) => {
  *
  * @param {Change} change
  * @param {Array} path
- * @param {Object|String} properties
+ * @param {Object|String} newProperties
  */
 
-Commands.setNodeByPath = (change, path, properties) => {
-  properties = Node.createProperties(properties)
+Commands.setNodeByPath = (change, path, newProperties) => {
   const { value } = change
   const { document } = value
   const node = document.assertNode(path)
+  newProperties = Node.createProperties(newProperties)
+  const prevProperties = pick(node, Object.keys(newProperties))
 
   change.applyOperation({
     type: 'set_node',
-    value,
     path,
-    node,
-    properties,
+    properties: prevProperties,
+    newProperties,
   })
 }
 
@@ -517,7 +510,6 @@ Commands.splitNodeByPath = (change, path, position, options = {}) => {
 
   change.applyOperation({
     type: 'split_node',
-    value,
     path,
     position,
     target,

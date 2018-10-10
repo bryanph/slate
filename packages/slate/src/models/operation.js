@@ -16,19 +16,19 @@ import invert from '../operations/invert'
  */
 
 const OPERATION_ATTRIBUTES = {
-  add_mark: ['value', 'path', 'offset', 'length', 'mark'],
-  insert_node: ['value', 'path', 'node'],
-  insert_text: ['value', 'path', 'offset', 'text', 'marks'],
-  merge_node: ['value', 'path', 'position', 'properties', 'target'],
-  move_node: ['value', 'path', 'newPath'],
-  remove_mark: ['value', 'path', 'offset', 'length', 'mark'],
-  remove_node: ['value', 'path', 'node'],
-  remove_text: ['value', 'path', 'offset', 'text', 'marks'],
-  set_mark: ['value', 'path', 'offset', 'length', 'mark', 'properties'],
-  set_node: ['value', 'path', 'node', 'properties'],
-  set_selection: ['value', 'selection', 'properties'],
-  set_value: ['value', 'properties'],
-  split_node: ['value', 'path', 'position', 'properties', 'target'],
+  add_mark: ['path', 'offset', 'length', 'mark'],
+  insert_node: ['path', 'node'],
+  insert_text: ['path', 'offset', 'text', 'marks'],
+  merge_node: ['path', 'position', 'properties', 'target'],
+  move_node: ['path', 'newPath'],
+  remove_mark: ['path', 'offset', 'length', 'mark'],
+  remove_node: ['path', 'node'],
+  remove_text: ['path', 'offset', 'text', 'marks'],
+  set_mark: ['path', 'offset', 'length', 'mark', 'properties'],
+  set_node: ['path', 'properties', 'newProperties'],
+  set_selection: ['properties', 'newProperties'],
+  set_value: ['properties', 'newProperties'],
+  split_node: ['path', 'position', 'properties', 'target'],
 }
 
 /**
@@ -47,6 +47,7 @@ const DEFAULTS = {
   path: undefined,
   position: undefined,
   properties: undefined,
+  newProperties: undefined,
   selection: undefined,
   target: undefined,
   text: undefined,
@@ -131,7 +132,7 @@ class Operation extends Record(DEFAULTS) {
         if (key == 'document') continue
         if (key == 'selection') continue
         if (key == 'value') continue
-        if (key == 'node' && type != 'insert_node') continue
+        if (key == 'node' && type != 'insert_node' && type != 'remove_node') continue
 
         throw new Error(
           `\`Operation.fromJSON\` was passed a "${type}" operation without the required "${key}" attribute.`
@@ -170,15 +171,15 @@ class Operation extends Record(DEFAULTS) {
         v = Mark.createProperties(v)
       }
 
-      if (key === 'properties' && type === 'set_node') {
+      if ((key === 'properties' || key === 'newProperties') && type === 'set_node') {
         v = Node.createProperties(v)
       }
 
-      if (key === 'properties' && type === 'set_selection') {
+      if ((key === 'properties' || key === 'newProperties') && type === 'set_selection') {
         v = Selection.createProperties(v)
       }
 
-      if (key === 'properties' && type === 'set_value') {
+      if ((key === 'properties' || key === 'newProperties') && type === 'set_value') {
         v = Value.createProperties(v)
       }
 
@@ -247,7 +248,7 @@ class Operation extends Record(DEFAULTS) {
       if (key == 'document') continue
       if (key == 'selection') continue
       if (key == 'value') continue
-      if (key == 'node' && type != 'insert_node') continue
+      if (key == 'node' && type != 'insert_node' && type != 'remove_node') continue
 
       if (
         key == 'mark' ||
@@ -273,14 +274,14 @@ class Operation extends Record(DEFAULTS) {
         value = v
       }
 
-      if (key == 'properties' && type == 'set_node') {
+      if ((key == 'properties' || key == 'newProperties') && type == 'set_node') {
         const v = {}
         if ('data' in value) v.data = value.data.toJS()
         if ('type' in value) v.type = value.type
         value = v
       }
 
-      if (key == 'properties' && type == 'set_selection') {
+      if ((key == 'properties' || key == 'newProperties') && type == 'set_selection') {
         const v = {}
         if ('anchor' in value) v.anchor = value.anchor.toJSON()
         if ('focus' in value) v.focus = value.focus.toJSON()
@@ -289,7 +290,7 @@ class Operation extends Record(DEFAULTS) {
         value = v
       }
 
-      if (key == 'properties' && type == 'set_value') {
+      if ((key == 'properties' || key == 'newProperties') && type == 'set_value') {
         const v = {}
         if ('data' in value) v.data = value.data.toJS()
         if ('decorations' in value) v.decorations = value.decorations.toJS()

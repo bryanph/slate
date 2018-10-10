@@ -79,20 +79,20 @@ function applyOperation(value, op) {
     }
 
     case 'set_node': {
-      const { path, properties } = op
-      const next = value.setNode(path, properties)
+      const { path, newProperties } = op
+      const next = value.setNode(path, newProperties)
       return next
     }
 
     case 'set_selection': {
-      const { properties } = op
-      const next = value.setSelection(properties)
+      const { newProperties } = op
+      const next = value.setSelection(newProperties)
       return next
     }
 
     case 'set_value': {
-      const { properties } = op
-      const next = value.setProperties(properties)
+      const { newProperties } = op
+      const next = value.setProperties(newProperties)
       return next
     }
 

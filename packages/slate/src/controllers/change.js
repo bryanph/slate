@@ -354,6 +354,7 @@ function getDirtyPaths(operation) {
 
       // HACK: this clause only exists because the `move_path` logic isn't
       // consistent when it deals with siblings.
+      // TODO: what does this do? - 2018-10-10
       if (!PathUtils.isSibling(path, newPath)) {
         if (newParentPath.size && PathUtils.isYounger(path, newPath)) {
           newParentPath = PathUtils.decrement(newParentPath, 1, path.size - 1)
