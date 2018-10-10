@@ -556,8 +556,6 @@ Commands.select = (change, properties, options = {}) => {
   let next = selection.setProperties(properties)
   next = document.resolveSelection(next)
 
-  console.log(selection.toJSON())
-
   // Re-compute the properties, to ensure that we get their normalized values.
   properties = pick(next, Object.keys(properties))
 
@@ -581,24 +579,15 @@ Commands.select = (change, properties, options = {}) => {
     return
   }
 
-  const prevProperties = pick(selection, Object.keys(newProperties))
-
-  function mapObj(s) {
-    return {
-      ...s,
-      anchor: s.anchor && s.anchor.toJSON(),
-      focus: s.focus && s.focus.toJSON(),
-    }
-  }
-
-  console.log(selection.toJSON(), selection.anchor.toJSON(), selection.focus.toJSON(), Object.keys(newProperties))
-  console.log(mapObj(prevProperties), mapObj(newProperties))
+      // TODO: we shouldn't have to store the complete previous selection, but it causes problems when undoing a selection between-blocks :(. So for now just store the complete selection - 2018-10-10
+  // const prevProperties = pick(selection, Object.keys(newProperties))
 
   change.applyOperation(
     {
       type: 'set_selection',
       value,
-      properties: prevProperties,
+      // properties: prevProperties,
+      properties: selection.toJSON(),
       newProperties,
       selection: selection.toJSON(),
     },

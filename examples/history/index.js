@@ -71,8 +71,9 @@ class History extends React.Component {
    * @param {Change} change
    */
 
-  onChange = ({ value }) => {
-    this.setState({ value })
+  onChange = (change) => {
+    console.log(change.operations.toJSON())
+    this.setState({ value: change.value })
   }
 
   /**
