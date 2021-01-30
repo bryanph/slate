@@ -11,3 +11,4 @@ import {
 const jsx = createHyperscript()
 
 export { jsx, createHyperscript, HyperscriptCreators, HyperscriptShorthands }
+export * from './creators'
