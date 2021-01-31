@@ -20,6 +20,9 @@
     "is-plain-object": "^3.0.0",
     "tiny-warning": "^1.0.3"
   },
+  "devDependencies": {
+    "slate-hyperscript": "^0.59.0"
+  },
   "keywords": [
     "canvas",
     "contenteditable",
