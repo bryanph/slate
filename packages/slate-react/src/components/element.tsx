@@ -7,13 +7,6 @@ import Children from './children'
 import { ReactEditor, useEditor, useReadOnly } from '..'
 import { SelectedContext } from '../hooks/use-selected'
 import { useIsomorphicLayoutEffect } from '../hooks/use-isomorphic-layout-effect'
-import {
-  NODE_TO_ELEMENT,
-  ELEMENT_TO_NODE,
-  NODE_TO_PARENT,
-  NODE_TO_INDEX,
-  KEY_TO_ELEMENT,
-} from '../utils/weak-maps'
 import { RenderElementProps, RenderLeafProps } from './editable'
 
 /**
@@ -107,19 +100,19 @@ const Element = (props: {
       </Tag>
     )
 
-    NODE_TO_INDEX.set(text, 0)
-    NODE_TO_PARENT.set(text, element)
+    editor.NODE_TO_INDEX.set(text, 0)
+    editor.NODE_TO_PARENT.set(text, element)
   }
 
   // Update element-related weak maps with the DOM element ref.
   useIsomorphicLayoutEffect(() => {
     if (ref.current) {
-      KEY_TO_ELEMENT.set(key, ref.current)
-      NODE_TO_ELEMENT.set(element, ref.current)
-      ELEMENT_TO_NODE.set(ref.current, element)
+      editor.KEY_TO_ELEMENT.set(key, ref.current)
+      editor.NODE_TO_ELEMENT.set(element, ref.current)
+      editor.ELEMENT_TO_NODE.set(ref.current, element)
     } else {
-      KEY_TO_ELEMENT.delete(key)
-      NODE_TO_ELEMENT.delete(element)
+      editor.KEY_TO_ELEMENT.delete(key)
+      editor.NODE_TO_ELEMENT.delete(element)
     }
   })
 

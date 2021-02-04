@@ -5,7 +5,6 @@ import { ReactEditor } from '../plugin/react-editor'
 import { FocusedContext } from '../hooks/use-focused'
 import { EditorContext } from '../hooks/use-editor'
 import { SlateContext } from '../hooks/use-slate'
-import { EDITOR_TO_ON_CHANGE } from '../utils/weak-maps'
 
 /**
  * A wrapper around the provider to handle `onChange` events, because the editor
@@ -32,11 +31,11 @@ export const Slate = (props: {
     setKey(key + 1)
   }, [key, onChange])
 
-  EDITOR_TO_ON_CHANGE.set(editor, onContextChange)
+  editor.EDITOR_TO_ON_CHANGE.set(editor, onContextChange)
 
   useEffect(() => {
     return () => {
-      EDITOR_TO_ON_CHANGE.set(editor, () => {})
+      editor.EDITOR_TO_ON_CHANGE.set(editor, () => {})
     }
   }, [])
 

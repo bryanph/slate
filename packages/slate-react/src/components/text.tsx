@@ -5,11 +5,6 @@ import Leaf from './leaf'
 import { ReactEditor, useEditor } from '..'
 import { RenderLeafProps } from './editable'
 import { useIsomorphicLayoutEffect } from '../hooks/use-isomorphic-layout-effect'
-import {
-  KEY_TO_ELEMENT,
-  NODE_TO_ELEMENT,
-  ELEMENT_TO_NODE,
-} from '../utils/weak-maps'
 
 /**
  * Text.
@@ -47,12 +42,12 @@ const Text = (props: {
   // Update element-related weak maps with the DOM element ref.
   useIsomorphicLayoutEffect(() => {
     if (ref.current) {
-      KEY_TO_ELEMENT.set(key, ref.current)
-      NODE_TO_ELEMENT.set(text, ref.current)
-      ELEMENT_TO_NODE.set(ref.current, text)
+      editor.KEY_TO_ELEMENT.set(key, ref.current)
+      editor.NODE_TO_ELEMENT.set(text, ref.current)
+      editor.ELEMENT_TO_NODE.set(ref.current, text)
     } else {
-      KEY_TO_ELEMENT.delete(key)
-      NODE_TO_ELEMENT.delete(text)
+      editor.KEY_TO_ELEMENT.delete(key)
+      editor.NODE_TO_ELEMENT.delete(text)
     }
   })
 

@@ -3,7 +3,6 @@ import { Editor, Node, Path, Operation, Transforms, Range } from 'slate'
 
 import { ReactEditor } from './react-editor'
 import { Key } from '../utils/key'
-import { EDITOR_TO_ON_CHANGE, NODE_TO_KEY } from '../utils/weak-maps'
 import { isDOMText, getPlainText } from '../utils/dom'
 
 /**
@@ -53,7 +52,7 @@ export const withReact = <T extends Editor>(editor: T) => {
 
     for (const [path, key] of matches) {
       const [node] = Editor.node(e, path)
-      NODE_TO_KEY.set(node, key)
+      e.NODE_TO_KEY.set(node, key)
     }
   }
 
@@ -175,7 +174,7 @@ export const withReact = <T extends Editor>(editor: T) => {
     // have to use this unstable API to ensure it batches them. (2019/12/03)
     // https://github.com/facebook/react/issues/14259#issuecomment-439702367
     ReactDOM.unstable_batchedUpdates(() => {
-      const onContextChange = EDITOR_TO_ON_CHANGE.get(e)
+      const onContextChange = e.EDITOR_TO_ON_CHANGE.get(e)
 
       if (onContextChange) {
         onContextChange()
@@ -184,6 +183,42 @@ export const withReact = <T extends Editor>(editor: T) => {
       onChange()
     })
   }
+
+  /**
+   * Two weak maps that allow us rebuild a path given a node. They are populated
+   * at render time such that after a render occurs we can always backtrack.
+   */
+  e.NODE_TO_INDEX = new WeakMap()
+  e.NODE_TO_PARENT = new WeakMap()
+
+  /**
+   * Weak maps that allow us to go between Slate nodes and DOM nodes. These
+   * are used to resolve DOM event-related logic into Slate actions.
+   */
+  e.EDITOR_TO_ELEMENT = new WeakMap()
+  e.EDITOR_TO_PLACEHOLDER = new WeakMap()
+  e.ELEMENT_TO_NODE = new WeakMap()
+  e.KEY_TO_ELEMENT = new WeakMap()
+  e.NODE_TO_ELEMENT = new WeakMap()
+  e.NODE_TO_KEY = new WeakMap()
+
+  /**
+   * Weak maps for storing editor-related state.
+   */
+  e.IS_READ_ONLY = new WeakMap()
+  e.IS_FOCUSED = new WeakMap()
+  e.IS_DRAGGING = new WeakMap()
+  e.IS_CLICKING = new WeakMap()
+
+  /**
+   * Weak map for associating the context `onChange` context with the plugin.
+   */
+  e.EDITOR_TO_ON_CHANGE = new WeakMap<Editor, () => void>()
+
+  /**
+   * Symbols.
+   */
+  e.PLACEHOLDER_SYMBOL = (Symbol('placeholder') as unknown) as string
 
   return e
 }

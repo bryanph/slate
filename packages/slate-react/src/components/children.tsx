@@ -5,7 +5,6 @@ import ElementComponent from './element'
 import TextComponent from './text'
 import { ReactEditor } from '..'
 import { useEditor } from '../hooks/use-editor'
-import { NODE_TO_INDEX, NODE_TO_PARENT } from '../utils/weak-maps'
 import { RenderElementProps, RenderLeafProps } from './editable'
 
 /**
@@ -77,8 +76,8 @@ const Children = (props: {
       )
     }
 
-    NODE_TO_INDEX.set(n, i)
-    NODE_TO_PARENT.set(n, node)
+    editor.NODE_TO_INDEX.set(n, i)
+    editor.NODE_TO_PARENT.set(n, node)
   }
 
   return <React.Fragment>{children}</React.Fragment>

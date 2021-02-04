@@ -1,16 +1,6 @@
-import { Editor, Node, Path, Point, Range, Transforms, Descendant } from 'slate'
+import { Editor, Node, Path, Point, Range, Transforms, Descendant, Ancestor } from 'slate'
 
 import { Key } from '../utils/key'
-import {
-  EDITOR_TO_ELEMENT,
-  ELEMENT_TO_NODE,
-  IS_FOCUSED,
-  IS_READ_ONLY,
-  KEY_TO_ELEMENT,
-  NODE_TO_INDEX,
-  NODE_TO_KEY,
-  NODE_TO_PARENT,
-} from '../utils/weak-maps'
 import {
   DOMElement,
   DOMNode,
@@ -29,6 +19,42 @@ import {
 export interface ReactEditor extends Editor {
   insertData: (data: DataTransfer) => void
   setFragmentData: (data: DataTransfer) => void
+
+  /**
+   * Two weak maps that allow us rebuild a path given a node. They are populated
+   * at render time such that after a render occurs we can always backtrack.
+   */
+  NODE_TO_INDEX: WeakMap<Node, number>
+  NODE_TO_PARENT: WeakMap<Node, Ancestor>
+
+  /**
+   * Weak maps that allow us to go between Slate nodes and DOM nodes. These
+   * are used to resolve DOM event-related logic into Slate actions.
+   */
+  EDITOR_TO_ELEMENT: WeakMap<Editor, HTMLElement>
+  EDITOR_TO_PLACEHOLDER: WeakMap<Editor, string>
+  ELEMENT_TO_NODE: WeakMap<HTMLElement, Node>
+  KEY_TO_ELEMENT: WeakMap<Key, HTMLElement>
+  NODE_TO_ELEMENT: WeakMap<Node, HTMLElement>
+  NODE_TO_KEY: WeakMap<Node, Key>
+
+  /**
+   * Weak maps for storing editor-related state.
+   */
+  IS_READ_ONLY: WeakMap<Editor, boolean>
+  IS_FOCUSED: WeakMap<Editor, boolean>
+  IS_DRAGGING: WeakMap<Editor, boolean>
+  IS_CLICKING: WeakMap<Editor, boolean>
+
+  /**
+   * Weak map for associating the context `onChange` context with the plugin.
+   */
+  EDITOR_TO_ON_CHANGE: WeakMap<Editor, () => void>
+
+  /**
+   * Symbols.
+   */
+  PLACEHOLDER_SYMBOL: string
 }
 
 export const ReactEditor = {
@@ -37,11 +63,11 @@ export const ReactEditor = {
    */
 
   findKey(editor: ReactEditor, node: Node): Key {
-    let key = NODE_TO_KEY.get(node)
+    let key = editor.NODE_TO_KEY.get(node)
 
     if (!key) {
       key = new Key()
-      NODE_TO_KEY.set(node, key)
+      editor.NODE_TO_KEY.set(node, key)
     }
 
     return key
@@ -56,7 +82,7 @@ export const ReactEditor = {
     let child = node
 
     while (true) {
-      const parent = NODE_TO_PARENT.get(child)
+      const parent = editor.NODE_TO_PARENT.get(child)
 
       if (parent == null) {
         if (Editor.isEditor(child)) {
@@ -66,7 +92,7 @@ export const ReactEditor = {
         }
       }
 
-      const i = NODE_TO_INDEX.get(child)
+      const i = editor.NODE_TO_INDEX.get(child)
 
       if (i == null) {
         break
@@ -86,7 +112,7 @@ export const ReactEditor = {
    */
 
   isFocused(editor: ReactEditor): boolean {
-    return !!IS_FOCUSED.get(editor)
+    return !!editor.IS_FOCUSED.get(editor)
   },
 
   /**
@@ -94,7 +120,7 @@ export const ReactEditor = {
    */
 
   isReadOnly(editor: ReactEditor): boolean {
-    return !!IS_READ_ONLY.get(editor)
+    return !!editor.IS_READ_ONLY.get(editor)
   },
 
   /**
@@ -103,7 +129,7 @@ export const ReactEditor = {
 
   blur(editor: ReactEditor): void {
     const el = ReactEditor.toDOMNode(editor, editor)
-    IS_FOCUSED.set(editor, false)
+    editor.IS_FOCUSED.set(editor, false)
 
     if (window.document.activeElement === el) {
       el.blur()
@@ -116,7 +142,7 @@ export const ReactEditor = {
 
   focus(editor: ReactEditor): void {
     const el = ReactEditor.toDOMNode(editor, editor)
-    IS_FOCUSED.set(editor, true)
+    editor.IS_FOCUSED.set(editor, true)
 
     if (window.document.activeElement !== el) {
       el.focus({ preventScroll: true })
@@ -203,8 +229,8 @@ export const ReactEditor = {
 
   toDOMNode(editor: ReactEditor, node: Node): HTMLElement {
     const domNode = Editor.isEditor(node)
-      ? EDITOR_TO_ELEMENT.get(editor)
-      : KEY_TO_ELEMENT.get(ReactEditor.findKey(editor, node))
+      ? editor.EDITOR_TO_ELEMENT.get(editor)
+      : editor.KEY_TO_ELEMENT.get(ReactEditor.findKey(editor, node))
 
     if (!domNode) {
       throw new Error(
@@ -316,7 +342,7 @@ export const ReactEditor = {
       domEl = domEl.closest(`[data-slate-node]`)
     }
 
-    const node = domEl ? ELEMENT_TO_NODE.get(domEl as HTMLElement) : null
+    const node = domEl ? editor.ELEMENT_TO_NODE.get(domEl as HTMLElement) : null
 
     if (!node) {
       throw new Error(`Cannot resolve a Slate node from DOM node: ${domEl}`)
@@ -463,7 +489,7 @@ export const ReactEditor = {
     // COMPAT: If someone is clicking from one Slate editor into another,
     // the select event fires twice, once for the old editor's `element`
     // first, and then afterwards for the correct `element`. (2017/03/03)
-    const slateNode = ReactEditor.toSlateNode(editor, textNode!)
+    const slateNode = ReactEditor.toSlateNode(editor, textNode)
     const path = ReactEditor.findPath(editor, slateNode)
     return { path, offset }
   },

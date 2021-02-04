@@ -34,14 +34,6 @@ import {
   DOMStaticRange,
   isPlainTextOnlyPaste,
 } from '../utils/dom'
-import {
-  EDITOR_TO_ELEMENT,
-  ELEMENT_TO_NODE,
-  IS_READ_ONLY,
-  NODE_TO_ELEMENT,
-  IS_FOCUSED,
-  PLACEHOLDER_SYMBOL,
-} from '../utils/weak-maps'
 
 // COMPAT: Firefox/Edge Legacy don't support the `beforeinput` event
 // Chrome Legacy doesn't support `beforeinput` correctly
@@ -117,7 +109,7 @@ export const Editable = (props: EditableProps) => {
   const ref = useRef<HTMLDivElement>(null)
 
   // Update internal state on each render.
-  IS_READ_ONLY.set(editor, readOnly)
+  editor.IS_READ_ONLY.set(editor, readOnly)
 
   // Keep track of some state for the event handler logic.
   const state = useMemo(
@@ -132,11 +124,11 @@ export const Editable = (props: EditableProps) => {
   // Update element-related weak maps with the DOM element ref.
   useIsomorphicLayoutEffect(() => {
     if (ref.current) {
-      EDITOR_TO_ELEMENT.set(editor, ref.current)
-      NODE_TO_ELEMENT.set(editor, ref.current)
-      ELEMENT_TO_NODE.set(ref.current, editor)
+      editor.EDITOR_TO_ELEMENT.set(editor, ref.current)
+      editor.NODE_TO_ELEMENT.set(editor, ref.current)
+      editor.ELEMENT_TO_NODE.set(ref.current, editor)
     } else {
-      NODE_TO_ELEMENT.delete(editor)
+      editor.NODE_TO_ELEMENT.delete(editor)
     }
   })
 
@@ -157,7 +149,7 @@ export const Editable = (props: EditableProps) => {
     }
 
     // verify that the dom selection is in the editor
-    const editorElement = EDITOR_TO_ELEMENT.get(editor)!
+    const editorElement = editor.EDITOR_TO_ELEMENT.get(editor)!
     let hasDomSelectionInEditor = false
     if (
       editorElement.contains(domSelection.anchorNode) &&
@@ -399,13 +391,16 @@ export const Editable = (props: EditableProps) => {
 
         if (activeElement === el) {
           state.latestElement = activeElement
-          IS_FOCUSED.set(editor, true)
+          editor.IS_FOCUSED.set(editor, true)
         } else {
-          IS_FOCUSED.delete(editor)
+          editor.IS_FOCUSED.delete(editor)
         }
 
         if (!domSelection) {
-          return Transforms.deselect(editor)
+          if (editor.selection !== null) {
+            Transforms.deselect(editor)
+          }
+          return
         }
 
         const { anchorNode, focusNode } = domSelection
@@ -455,7 +450,7 @@ export const Editable = (props: EditableProps) => {
   ) {
     const start = Editor.start(editor, [])
     decorations.push({
-      [PLACEHOLDER_SYMBOL]: true,
+      [editor.PLACEHOLDER_SYMBOL]: true,
       placeholder,
       anchor: start,
       focus: start,
@@ -568,7 +563,7 @@ export const Editable = (props: EditableProps) => {
               }
             }
 
-            IS_FOCUSED.delete(editor)
+            editor.IS_FOCUSED.delete(editor)
           },
           [readOnly, attributes.onBlur]
         )}
@@ -744,7 +739,7 @@ export const Editable = (props: EditableProps) => {
                 return
               }
 
-              IS_FOCUSED.set(editor, true)
+              editor.IS_FOCUSED.set(editor, true)
             }
           },
           [readOnly, attributes.onFocus]
